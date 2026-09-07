@@ -1,5 +1,5 @@
 terraform {
-  required_version = ">= 1.9.0"
+  required_version = ">= 1.10.0"
 
   required_providers {
     aws = {
@@ -13,11 +13,11 @@ terraform {
   }
 
   backend "s3" {
-    bucket         = "receipt-tracker-tfstate"
-    key            = "envs/dev/terraform.tfstate"
-    region         = "eu-north-1"
-    dynamodb_table = "receipt-tracker-tf-locks"
-    encrypt        = true
+    bucket       = "receipt-tracker-tfstate"
+    key          = "envs/dev/terraform.tfstate"
+    region       = "eu-north-1"
+    use_lockfile = true
+    encrypt      = true
   }
 }
 

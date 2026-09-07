@@ -5,7 +5,7 @@ Terraform + Lambda source monorepo for the receipt tracker app on AWS (region: `
 ## Layout
 
 ```
-bootstrap/     one-time setup: S3 state bucket + DynamoDB lock table
+bootstrap/     one-time setup: S3 state bucket (with native lockfile locking), GitHub Actions OIDC role
 modules/       reusable Terraform modules (lambda, s3, api_gateway)
 envs/          per-environment root configs (dev, prod)
 functions/     Python Lambda source, one directory per function
@@ -17,24 +17,29 @@ approach (Cognito or otherwise) will be layered in once decided.
 
 ## Prerequisites
 
-- Terraform >= 1.9
+- Terraform >= 1.10
 - AWS CLI configured with credentials for the target account
 - Python 3.13 (for local Lambda testing)
 
 ## One-time setup
 
-1. **Create the remote state backend:**
+1. **Create the remote state backend and GitHub Actions OIDC role:**
    ```bash
    cd bootstrap
    terraform init
    terraform apply
    ```
-   This creates the `receipt-tracker-tfstate` S3 bucket and `receipt-tracker-tf-locks`
-   DynamoDB table that every environment's backend points at.
+   This creates the `receipt-tracker-tfstate` S3 bucket and an IAM role
+   (`receipt-tracker-github-actions-deploy`) that
+   `md-coops/receipt_scanner_infrastructure` can assume via GitHub's OIDC provider —
+   no long-lived AWS keys stored in GitHub. Grab the role
+   ARN afterward:
+   ```bash
+   terraform output -raw github_actions_role_arn
+   ```
 
-2. **GitHub Actions AWS access:** the workflows assume an IAM role assumable via GitHub
-   OIDC, referenced as the `AWS_DEPLOY_ROLE_ARN` repository secret. This role and its
-   OIDC trust relationship must be created out-of-band (not managed by this repo).
+2. **Add the role ARN as a repo secret:** Settings → Secrets and variables → Actions →
+   New repository secret, name `AWS_DEPLOY_ROLE_ARN`, value from the output above.
 
 3. **Prod approval gate:** create a `prod` GitHub Environment (Settings → Environments)
    with required reviewers, so `terraform-apply.yml` pauses for approval before applying
