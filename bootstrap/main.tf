@@ -130,6 +130,13 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "s3:GetLifecycleConfiguration",
       "s3:GetBucketTagging",
       "s3:PutBucketTagging",
+      "s3:GetBucketPolicy",
+      "s3:GetBucketAcl",
+      "s3:GetBucketWebsite",
+      "s3:GetBucketRequestPayment",
+      "s3:GetBucketLogging",
+      "s3:GetReplicationConfiguration",
+      "s3:GetBucketObjectLockConfiguration",
       "s3:ListBucket",
       "s3:GetObject",
       "s3:PutObject",
@@ -157,6 +164,7 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "lambda:AddPermission",
       "lambda:RemovePermission",
       "lambda:GetPolicy",
+      "lambda:GetFunctionCodeSigningConfig",
     ]
     resources = ["arn:aws:lambda:*:*:function:${var.project_name}-*"]
   }
@@ -167,6 +175,7 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
     resources = [
       "arn:aws:apigateway:*::/apis",
       "arn:aws:apigateway:*::/apis/*",
+      "arn:aws:apigateway:*::/tags/*",
     ]
   }
 
@@ -196,13 +205,20 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "logs:CreateLogGroup",
       "logs:DeleteLogGroup",
       "logs:PutRetentionPolicy",
-      "logs:DescribeLogGroups",
       "logs:ListTagsForResource",
       "logs:TagResource",
       "logs:UntagResource",
       "logs:TagLogGroup",
     ]
     resources = ["arn:aws:logs:*:*:log-group:/aws/lambda/${var.project_name}-*"]
+  }
+
+  statement {
+    sid = "ListLambdaLogGroups"
+    actions = [
+      "logs:DescribeLogGroups",
+    ]
+    resources = ["arn:aws:logs:*:*:log-group::log-stream:*"]
   }
 }
 
