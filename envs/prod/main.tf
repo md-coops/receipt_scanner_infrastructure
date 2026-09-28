@@ -31,10 +31,10 @@ module "receipt_upload_lambda" {
   tags = local.common_tags
 }
 
-module "receipt_process_lambda" {
+module "get_presigned_url_lambda" {
   source        = "../../modules/lambda"
-  function_name = "${var.project_name}-${var.environment}-receipt-process"
-  source_dir    = "${path.module}/../../functions/receipt_process"
+  function_name = "${var.project_name}-${var.environment}-get-presigned-url"
+  source_dir    = "${path.module}/../../functions/get_presigned_url"
   handler       = "handler.lambda_handler"
 
   environment_variables = {
@@ -42,7 +42,7 @@ module "receipt_process_lambda" {
   }
 
   iam_policy_statements = [{
-    actions   = ["s3:GetObject"]
+    actions   = ["s3:PutObject"]
     resources = ["${module.receipts_bucket.bucket_arn}/*"]
   }]
 
@@ -60,9 +60,9 @@ module "api" {
       lambda_function_name = module.receipt_upload_lambda.function_name
     },
     {
-      route_key            = "GET /receipts/{id}"
-      lambda_invoke_arn    = module.receipt_process_lambda.invoke_arn
-      lambda_function_name = module.receipt_process_lambda.function_name
+      route_key            = "GET /receipts/presigned"
+      lambda_invoke_arn    = module.get_presigned_url_lambda.invoke_arn
+      lambda_function_name = module.get_presigned_url_lambda.function_name
     },
   ]
 

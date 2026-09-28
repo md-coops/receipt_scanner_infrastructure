@@ -1,2 +1,2 @@
-# Third-party dependencies for receipt_process go here.
+# Third-party dependencies for get_presigned_url go here.
 # boto3 is provided by the Lambda runtime and does not need to be listed.
