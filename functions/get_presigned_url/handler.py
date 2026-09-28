@@ -12,7 +12,7 @@ def lambda_handler(event, context):
     object_id = uuid.uuid4()
     try:
         url = s3.generate_presigned_url(
-            "put_object",  # Specifies the PUT operation for downloading
+            "put_object",  # Specifies the PUT operation for uploading
             {"Bucket": BUCKET, "Key": str(object_id)},
             1000
         )
