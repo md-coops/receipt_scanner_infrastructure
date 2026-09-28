@@ -195,6 +195,7 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "iam:DetachRolePolicy",
       "iam:ListRolePolicies",
       "iam:ListAttachedRolePolicies",
+      "iam:ListInstanceProfilesForRole",
     ]
     resources = ["arn:aws:iam::*:role/${var.project_name}-*"]
   }
