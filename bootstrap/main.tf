@@ -81,13 +81,16 @@ data "aws_iam_policy_document" "github_actions_assume_role" {
       values   = ["sts.amazonaws.com"]
     }
 
-    # Trusts pushes to main (apply workflow) and any PR from this repo (plan
-    # workflow). Permissions, not this trust scope, are the real boundary.
+    # Trusts pushes to main (apply workflow), the prod environment job (whose
+    # sub is environment-scoped rather than ref-scoped) and any PR from this
+    # repo (plan workflow). Permissions, not this trust scope, are the real
+    # boundary.
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
       values = [
         "repo:${var.github_org}@${var.github_org_id}/${var.github_repo_name}@${var.github_repo_id}:ref:refs/heads/main",
+        "repo:${var.github_org}@${var.github_org_id}/${var.github_repo_name}@${var.github_repo_id}:environment:prod",
         "repo:${var.github_org}@${var.github_org_id}/${var.github_repo_name}@${var.github_repo_id}:pull_request",
       ]
     }
