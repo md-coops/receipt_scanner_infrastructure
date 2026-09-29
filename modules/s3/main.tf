@@ -5,9 +5,75 @@ resource "aws_s3_bucket" "this" {
 
 # --- Object-created notifications via SNS ------------------------------------
 
+locals {
+  topic_name = "${var.bucket_name}-events"
+}
+
 resource "aws_sns_topic" "this" {
-  name = "${var.bucket_name}-events"
+  name = local.topic_name
+
+  lambda_success_feedback_role_arn    = aws_iam_role.sns_delivery_logs.arn
+  lambda_failure_feedback_role_arn    = aws_iam_role.sns_delivery_logs.arn
+  lambda_success_feedback_sample_rate = var.sns_success_sample_rate
+
   tags = var.tags
+}
+
+# --- SNS delivery-status logging to CloudWatch -------------------------------
+
+data "aws_region" "current" {}
+data "aws_caller_identity" "current" {}
+
+# SNS picks these log group names itself; pre-create them to control retention.
+resource "aws_cloudwatch_log_group" "sns_success" {
+  name              = "sns/${data.aws_region.current.name}/${data.aws_caller_identity.current.account_id}/${local.topic_name}"
+  retention_in_days = var.log_retention_days
+  tags              = var.tags
+}
+
+resource "aws_cloudwatch_log_group" "sns_failure" {
+  name              = "sns/${data.aws_region.current.name}/${data.aws_caller_identity.current.account_id}/${local.topic_name}/Failure"
+  retention_in_days = var.log_retention_days
+  tags              = var.tags
+}
+
+data "aws_iam_policy_document" "sns_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["sns.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "sns_delivery_logs" {
+  name               = "${var.bucket_name}-sns-delivery-logs"
+  assume_role_policy = data.aws_iam_policy_document.sns_assume_role.json
+  tags               = var.tags
+}
+
+data "aws_iam_policy_document" "sns_delivery_logs" {
+  statement {
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "logs:PutMetricFilter",
+      "logs:PutRetentionPolicy",
+    ]
+    resources = [
+      "${aws_cloudwatch_log_group.sns_success.arn}:*",
+      "${aws_cloudwatch_log_group.sns_failure.arn}:*",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "sns_delivery_logs" {
+  name   = "${var.bucket_name}-sns-delivery-logs"
+  role   = aws_iam_role.sns_delivery_logs.id
+  policy = data.aws_iam_policy_document.sns_delivery_logs.json
 }
 
 data "aws_iam_policy_document" "sns_topic" {
