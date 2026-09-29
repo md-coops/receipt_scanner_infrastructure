@@ -13,10 +13,10 @@ module "receipts_bucket" {
   tags        = local.common_tags
 }
 
-module "receipt_upload_lambda" {
+module "process_receipt_lambda" {
   source        = "../../modules/lambda"
   function_name = "${var.project_name}-${var.environment}-receipt-upload"
-  source_dir    = "${path.module}/../../functions/receipt_upload"
+  source_dir    = "${path.module}/../../functions/process_receipt"
   handler       = "handler.lambda_handler"
 
   environment_variables = {
@@ -56,8 +56,8 @@ module "api" {
   routes = [
     {
       route_key            = "POST /receipts"
-      lambda_invoke_arn    = module.receipt_upload_lambda.invoke_arn
-      lambda_function_name = module.receipt_upload_lambda.function_name
+      lambda_invoke_arn    = module.process_receipt_lambda.invoke_arn
+      lambda_function_name = module.process_receipt_lambda.function_name
     },
     {
       route_key            = "GET /receipts/presigned"
