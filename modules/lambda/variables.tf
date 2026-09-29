@@ -42,6 +42,12 @@ variable "iam_policy_statements" {
   default = []
 }
 
+variable "sns_topic_arns" {
+  description = "SNS topics that invoke this function"
+  type        = list(string)
+  default     = []
+}
+
 variable "log_retention_days" {
   type    = number
   default = 14

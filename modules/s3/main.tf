@@ -3,6 +3,50 @@ resource "aws_s3_bucket" "this" {
   tags   = var.tags
 }
 
+# --- Object-created notifications via SNS ------------------------------------
+
+resource "aws_sns_topic" "this" {
+  name = "${var.bucket_name}-events"
+  tags = var.tags
+}
+
+data "aws_iam_policy_document" "sns_topic" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["s3.amazonaws.com"]
+    }
+
+    actions   = ["SNS:Publish"]
+    resources = [aws_sns_topic.this.arn]
+
+    condition {
+      test     = "ArnLike"
+      variable = "aws:SourceArn"
+      values   = [aws_s3_bucket.this.arn]
+    }
+  }
+}
+
+resource "aws_sns_topic_policy" "this" {
+  arn    = aws_sns_topic.this.arn
+  policy = data.aws_iam_policy_document.sns_topic.json
+}
+
+resource "aws_s3_bucket_notification" "this" {
+  bucket = aws_s3_bucket.this.id
+
+  topic {
+    topic_arn = aws_sns_topic.this.arn
+    events    = ["s3:ObjectCreated:*"]
+  }
+
+  # S3 validates it can publish to the topic when the notification is created.
+  depends_on = [aws_sns_topic_policy.this]
+}
+
 resource "aws_s3_bucket_versioning" "this" {
   bucket = aws_s3_bucket.this.id
 
