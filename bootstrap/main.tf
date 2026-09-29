@@ -144,11 +144,32 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "s3:GetObject",
       "s3:PutObject",
       "s3:DeleteObject",
+      "s3:PutBucketNotification",
+      "s3:GetBucketNotification",
     ]
     resources = [
       "arn:aws:s3:::${var.project_name}-*",
       "arn:aws:s3:::${var.project_name}-*/*",
     ]
+  }
+
+  statement {
+    sid = "ManageSnsTopics"
+    actions = [
+      "sns:CreateTopic",
+      "sns:DeleteTopic",
+      "sns:GetTopicAttributes",
+      "sns:SetTopicAttributes",
+      "sns:Subscribe",
+      "sns:Unsubscribe",
+      "sns:GetSubscriptionAttributes",
+      "sns:SetSubscriptionAttributes",
+      "sns:ListSubscriptionsByTopic",
+      "sns:TagResource",
+      "sns:UntagResource",
+      "sns:ListTagsForResource",
+    ]
+    resources = ["arn:aws:sns:*:*:${var.project_name}-*"]
   }
 
   statement {
