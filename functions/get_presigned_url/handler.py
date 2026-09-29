@@ -7,7 +7,6 @@ from botocore.exceptions import ClientError
 s3 = boto3.client("s3")
 BUCKET = os.environ["RECEIPTS_BUCKET"]
 
-
 def lambda_handler(event, context):
     object_id = uuid.uuid4()
     try:
