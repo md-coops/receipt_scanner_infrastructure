@@ -204,7 +204,7 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
   }
 
   statement {
-    sid = "ManageLambdaExecutionRoles"
+    sid = "ManageServiceRoles"
     actions = [
       "iam:CreateRole",
       "iam:DeleteRole",
@@ -225,7 +225,7 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
   }
 
   statement {
-    sid = "ManageLambdaLogGroups"
+    sid = "ManageLogGroups"
     actions = [
       "logs:CreateLogGroup",
       "logs:DeleteLogGroup",
@@ -235,7 +235,11 @@ data "aws_iam_policy_document" "github_actions_deploy_permissions" {
       "logs:UntagResource",
       "logs:TagLogGroup",
     ]
-    resources = ["arn:aws:logs:*:*:log-group:/aws/lambda/${var.project_name}-*"]
+    resources = [
+      "arn:aws:logs:*:*:log-group:/aws/lambda/${var.project_name}-*",
+      # SNS delivery-status logs: sns/<region>/<account>/<topic>[/Failure]
+      "arn:aws:logs:*:*:log-group:sns/*/*/${var.project_name}-*",
+    ]
   }
 
   statement {
