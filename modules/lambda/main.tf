@@ -70,3 +70,24 @@ resource "aws_lambda_function" "this" {
 
   tags = var.tags
 }
+
+# count rather than for_each: topic ARNs are often unknown until apply.
+resource "aws_lambda_permission" "sns" {
+  count = length(var.sns_topic_arns)
+
+  statement_id  = "AllowSNSInvoke-${count.index}"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.this.function_name
+  principal     = "sns.amazonaws.com"
+  source_arn    = var.sns_topic_arns[count.index]
+}
+
+resource "aws_sns_topic_subscription" "this" {
+  count = length(var.sns_topic_arns)
+
+  topic_arn = var.sns_topic_arns[count.index]
+  protocol  = "lambda"
+  endpoint  = aws_lambda_function.this.arn
+
+  depends_on = [aws_lambda_permission.sns]
+}

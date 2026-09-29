@@ -15,7 +15,7 @@ module "receipts_bucket" {
 
 module "process_receipt_lambda" {
   source        = "../../modules/lambda"
-  function_name = "${var.project_name}-${var.environment}-receipt-upload"
+  function_name = "${var.project_name}-${var.environment}-process-receipt"
   source_dir    = "${path.module}/../../functions/process_receipt"
   handler       = "handler.lambda_handler"
 
@@ -24,9 +24,11 @@ module "process_receipt_lambda" {
   }
 
   iam_policy_statements = [{
-    actions   = ["s3:PutObject"]
+    actions   = ["s3:GetObject"]
     resources = ["${module.receipts_bucket.bucket_arn}/*"]
   }]
+
+  sns_topic_arns = [module.receipts_bucket.notification_topic_arn]
 
   tags = local.common_tags
 }
@@ -42,7 +44,7 @@ module "get_presigned_url_lambda" {
   }
 
   iam_policy_statements = [{
-    actions   = ["s3:PutObject"]
+    actions   = ["s3:GetObject"]
     resources = ["${module.receipts_bucket.bucket_arn}/*"]
   }]
 
