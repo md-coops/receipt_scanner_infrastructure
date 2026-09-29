@@ -44,7 +44,7 @@ module "get_presigned_url_lambda" {
   }
 
   iam_policy_statements = [{
-    actions   = ["s3:GetObject"]
+    actions   = ["s3:PutObject"]
     resources = ["${module.receipts_bucket.bucket_arn}/*"]
   }]
 
@@ -56,11 +56,6 @@ module "api" {
   api_name = "${var.project_name}-${var.environment}"
 
   routes = [
-    {
-      route_key            = "POST /receipts"
-      lambda_invoke_arn    = module.process_receipt_lambda.invoke_arn
-      lambda_function_name = module.process_receipt_lambda.function_name
-    },
     {
       route_key            = "GET /receipts/presigned"
       lambda_invoke_arn    = module.get_presigned_url_lambda.invoke_arn

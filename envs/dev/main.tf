@@ -57,11 +57,6 @@ module "api" {
 
   routes = [
     {
-      route_key            = "POST /receipts"
-      lambda_invoke_arn    = module.process_receipt_lambda.invoke_arn
-      lambda_function_name = module.process_receipt_lambda.function_name
-    },
-    {
       route_key            = "GET /receipts/presigned"
       lambda_invoke_arn    = module.get_presigned_url_lambda.invoke_arn
       lambda_function_name = module.get_presigned_url_lambda.function_name
